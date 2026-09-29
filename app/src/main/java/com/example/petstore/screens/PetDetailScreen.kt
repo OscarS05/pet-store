@@ -85,7 +85,7 @@ fun PetDetailScreen(
         }
 
         item {
-            descriptionSection(
+            DescriptionSection(
                 description = pet.description
             )
         }
@@ -329,9 +329,29 @@ private fun PetInfoItem(
 }
 
 @Composable
-private fun descriptionSection(
+private fun DescriptionSection(
     description: String
 ) {
+    val context = LocalContext.current
+
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            val uri = Uri.parse(
+                "android.resource://${context.packageName}/${R.raw.pet_care}"
+            )
+
+            setMediaItem(MediaItem.fromUri(uri))
+            prepare()
+            playWhenReady = false
+        }
+    }
+
+    DisposableEffect(exoPlayer) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -351,6 +371,29 @@ private fun descriptionSection(
             text = description,
             fontSize = 15.sp,
             color = CardBannerTextColor
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "Pet Care Guide",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = Secondary
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        AndroidView(
+            factory = {
+                PlayerView(context).apply {
+                    player = exoPlayer
+                    useController = true
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
         )
     }
 }
